@@ -17,7 +17,6 @@ const authenticatedUser = (username, password) => {
 
 // --------- LOGIN ROUTE (/customer/login) -----------
 regd_users.post("/login", (req, res) => {
-  console.log(req.body)
   const { username, password } = req.body;
 
   // Check if username and password are provided
@@ -55,8 +54,6 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   const isbn = req.params.isbn;
   const review = req.query.review; // review comes from query string
 
-  console.log(isbn,review)
-
 
   // Check if user is logged in
   if (!req.session.authorization || !req.session.authorization.username) {
@@ -77,6 +74,35 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   return res.status(200).json({
     message: `Review for book ISBN ${isbn} by user ${username} added/updated successfully`,
     reviews: book.reviews
+  });
+});
+
+// Delete a book review 
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const isbn = req.params.isbn;
+
+  if (!req.session.authorization || !req.session.authorization.username) {
+    return res.status(401).json({ message: "User not logged in" });
+  }
+
+  const username = req.session.authorization.username;
+
+  if (!books[isbn]) {
+    return res.status(404).json({ message: "Book not found" });
+  }
+
+  const userReview = books[isbn].reviews[username];
+
+  if (!userReview) {
+    return res.status(404).json({ message: "No review found for this user to delete" });
+  }
+
+  // Delete only the logged-in user's review
+  delete books[isbn].reviews[username];
+
+  return res.status(200).json({
+    message: `Review for book ISBN ${isbn} by ${username} deleted successfully`,
+    reviews: books[isbn].reviews
   });
 });
 
