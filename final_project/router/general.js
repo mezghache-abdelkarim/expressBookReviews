@@ -45,21 +45,25 @@ public_users.get('/booksdata', (req, res) => {
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn', function (req, res) {
-  // Retrieve ISBN from the URL parameters
-  const isbn = req.params.isbn;
+public_users.get('/isbn/:isbn', async (req, res) => {
+  try {
+    const { isbn } = req.params;
 
-  // Check if the book exists in the database
-  const book = books[isbn];
+    // Simulate fetching a single book via Axios from the same API
+    const response = await axios.get(`http://localhost:5000/booksdata`);
+    const allBooks = response.data;
 
-  if (book) {
-    // If found, return the book details in a neat format
-    res.send(JSON.stringify(book, null ,4));
-  } else {
-    // If not found, return a 404 message
-    res.status(404).json({ message: "Book not found" });
+    const book = allBooks[isbn];
+    if (book) {
+      return res.status(200).json(book);
+    } else {
+      return res.status(404).json({ message: "Book not found" });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching book", error: error.message });
   }
 });
+
 
   
 // Get book details based on author
